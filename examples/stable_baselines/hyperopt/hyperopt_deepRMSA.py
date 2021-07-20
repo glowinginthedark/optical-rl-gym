@@ -2,7 +2,7 @@ import os
 import pickle
 import numpy as np
 
-from IPython.display import clear_output
+# from IPython.display import clear_output
 
 # %matplotlib inline
 # %config InlineBackend.figure_format = 'svg'
@@ -20,7 +20,7 @@ import gym
 
 import pickle
 import time
-from hyperopt import fmin, tpe, hp, STATUS_OK
+from hyperopt import fmin, tpe, hp, STATUS_OK, base
 
 # callback from https://stable-baselines.readthedocs.io/en/master/guide/examples.html#using-callback-monitoring-training
 class SaveOnBestTrainingRewardCallback(BaseCallback):
@@ -62,10 +62,30 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
                     if self.verbose > 0:
                         print("Saving new best model to {}".format(self.save_path))
                         self.model.save(self.save_path)
-                if self.verbose > 0:
-                    clear_output(wait=True)
+                #if self.verbose > 0:
+                    #clear_output(wait=True)
 
         return True
+
+class LogCallback(BaseCallback):
+
+    def __init__(self):
+        super(LogCallback, self).__init__(1)
+
+    def pretty(self, d, indent=0):
+        for key, value in d.items():
+            print('\t' * indent + str(key))
+            if isinstance(value, dict):
+                self.pretty(value, indent+1)
+            else:
+                print('\t' * (indent+1) + str(value))
+
+    def _init_callback(self) -> None:
+        pass
+
+    def _on_step(self) -> bool:
+        self.pretty(self.locals)
+        print("----------------------------")
 
 # loading the topology binary file containing the graph and the k-shortest paths
 # if you want to generate your own binary topology file, check examples/create_topology_rmsa.py
@@ -80,7 +100,7 @@ node_request_probabilities = np.array([0.01801802, 0.04004004, 0.05305305, 0.019
        0.07607608, 0.12012012, 0.01901902, 0.16916917])
 
 # mean_service_holding_time=7.5,
-env_args = dict(topology=topology, seed=10, 
+env_args = dict(topology=topology, seed=10,
                 allow_rejection=False, # the agent cannot proactively reject a request
                 j=1, # consider only the first suitable spectrum block for the spectrum assignment
                 mean_service_holding_time=7.5, # value is not set as in the paper to achieve comparable reward values
@@ -90,6 +110,7 @@ env_args = dict(topology=topology, seed=10,
 log_dir = "./tmp/deeprmsa-ppo/"
 os.makedirs(log_dir, exist_ok=True)
 callback = SaveOnBestTrainingRewardCallback(check_freq=100, log_dir=log_dir)
+log_callback = LogCallback()
 
 env = gym.make('DeepRMSA-v0', **env_args)
 
@@ -98,33 +119,44 @@ env = gym.make('DeepRMSA-v0', **env_args)
 env = Monitor(env, log_dir + 'training', info_keywords=('episode_service_blocking_rate','episode_bit_rate_blocking_rate'))
 # for more information about the monitor, check https://stable-baselines.readthedocs.io/en/master/_modules/stable_baselines/bench/monitor.html#Monitor
 
-# here goes the arguments of the policy network to be used
-
-
 def Average(lst):
     return sum(lst) / len(lst)
 
 # Objective function for hyperopt
-def objective_function(num_layer_nodes):
-    print(num_layer_nodes)
-    
-    policy_args = dict(net_arch=5*[int(num_layer_nodes)]) # we use the elu activation function
+def objective_function(num_layers):
+    print(num_layers)
+
+   # 5 layers
+    policy_args = dict(net_arch=num_layers*[int(8)]) # we use the elu activation function
 
     agent = PPO(MlpPolicy, env, verbose=0, tensorboard_log="./tb/PPO-DeepRMSA-v0/", policy_kwargs=policy_args, gamma=.95, learning_rate=10e-5)
 
-    agent.learn(total_timesteps=100000, callback=c)
-    
+    agent.learn(total_timesteps=100000, callback=[log_callback, callback])
+
     average_episode_blocking_rate = Average([i['episode_bit_rate_blocking_rate'] for i in list(agent.ep_info_buffer)])
     print(average_episode_blocking_rate)
 
     return average_episode_blocking_rate
 
+filename = "/project/def-maibin/mbz/trials"
+
+if not os.path.isfile(filename):
+   with open(filename,'wb') as file:
+       pickle.dump(base.Trials(), file)
+   file.close()
+trial_values=[1,2,3,4,5,8,16,32,64,128,256,512,1024]
+
 # call hyperopt fmin() and provide objective function with search space
-best = fmin(fn=objective_function,
-    space=hp.uniform('num_layer_nodes', 1, 1024),
+best = fmin(
+    #space=hp.uniform('num_layer_nodes', 1, 1024),
+    #show_progressbar=False,
+    fn=objective_function,
     algo=tpe.suggest,
-    max_evals=100)
+    space=hp.choice('num_layer_nodes', trial_values),
+    trials_save_file=filename,
+    max_evals=len(trial_values)
+)
 
 print(best)
 
-results_plotter.plot_results([log_dir], 1e5, results_plotter.X_TIMESTEPS, "DeepRMSA PPO")
+# results_plotter.plot_results([log_dir], 1e5, results_plotter.X_TIMESTEPS, "DeepRMSA PPO")
