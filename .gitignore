@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Grey wolf logs
+examples/stable_baselines/grey_wolf/grey_wolf_deep_rmsa_ppo/
+examples/stable_baselines/grey_wolf/*.out
