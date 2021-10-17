@@ -53,7 +53,7 @@ class OpticalNetworkEnv(gym.Env):
             self.topology.add_edge("C", "E", index=4, weight=1, length=300)
             self.topology.add_edge("D", "E", index=5, weight=1, length=200)
             self.topology.add_edge("D", "F", index=6, weight=1, length=400)
-            self.topology.add_edge("E", "F", index=6, weight=1, length=500)
+            self.topology.add_edge("E", "F", index=7, weight=1, length=500)
             self.topology.graph["node_indices"] = []
 
             for idx, node in enumerate(self.topology.nodes()):

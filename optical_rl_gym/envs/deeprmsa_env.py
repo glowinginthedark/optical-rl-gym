@@ -72,7 +72,19 @@ class DeepRMSAEnv(RMSAEnv):
 
             av_indices = np.argwhere(values == 1) # getting indices which have value 1
             spectrum_obs[idp, self.j * 2 + 1] = 2 * (np.sum(available_slots) - .5 * self.num_spectrum_resources) / self.num_spectrum_resources # total number available FSs
-            spectrum_obs[idp, self.j * 2 + 2] = (np.mean(lengths[av_indices]) - 4) / 4 # avg. number of FS blocks available
+
+            _answer = 0
+
+            if len(av_indices) == 0:
+                _answer = 0
+            else:
+                _answer = np.mean(lengths[av_indices])
+
+            spectrum_obs[idp, self.j * 2 + 2] = (_answer - 4) / 4 # avg. number of FS blocks available
+
+            if np.isnan(spectrum_obs).any():
+                spectrum_obs = np.nan_to_num(spectrum_obs)
+
         bit_rate_obs = np.zeros((1, 1))
         bit_rate_obs[0, 0] = self.service.bit_rate / 100
 
