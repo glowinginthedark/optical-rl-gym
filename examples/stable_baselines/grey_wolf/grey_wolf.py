@@ -29,14 +29,7 @@ class Wolf:
 
             self.position[index] = ((maximum - minimum) * self.rnd.random() + minimum)
 
-
-        print("lolol")
-        print("jlskdjflskjdf")
-        print("jlskdjflskjdf")
-        print("jlskdjflskjdf")
-        print("jlskdjflskjdf")
-        print("jlskdjflskjdf")
-        print(self.position)
+        print(f"Initializing wolf at {self.position}")
 
         self.fitness = fitness(self.position, seed, 998) # curr fitness
 
