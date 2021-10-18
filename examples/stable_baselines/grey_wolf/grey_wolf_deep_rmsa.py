@@ -142,7 +142,7 @@ def make_environment(environment_id, subprocess_index, wolf_number, iteration_nu
             allow_rejection=False, # the agent cannot proactively reject a request
             j=1, # consider only the first suitable spectrum block for the spectrum assignment
             # mean_service_holding_time not set as in the paper to achieve comparable reward values
-            mean_service_holding_time=7.5,
+            mean_service_holding_time=3,
             episode_length=50,
             node_request_probabilities=node_request_probabilities
         )
@@ -207,7 +207,7 @@ def objective_function(hyperparameters: List[int], wolf_number, iteration_number
     )
 
     agent.learn(
-        total_timesteps=5,
+        total_timesteps=1500,
         callback=[SaveOnBestTrainingRewardCallback(check_freq=100, log_dir=experiment_log_dir)]
     )
 
@@ -230,7 +230,7 @@ def run(logdir):
         "learning_rate": [10e-5, 0.01],
         "entropy_coefficient": [10e-5, 0.5]
     }
-    subprocesses = 6
+    subprocesses = 4
     num_wolves = 3
     max_iteration_number = 1
 

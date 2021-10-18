@@ -19,7 +19,7 @@ class Wolf:
         Wolf class.
     """
 
-    def __init__(self, fitness, intervals: List[List[float]], seed):
+    def __init__(self, fitness, intervals: List[List[float]], seed, i):
         self.rnd = random.Random(seed)
         self.position = [0.0 for i in range(len(intervals))]
 
@@ -31,7 +31,7 @@ class Wolf:
 
         print(f"Initializing wolf at {self.position}")
 
-        self.fitness = fitness(self.position, seed, 998) # curr fitness
+        self.fitness = fitness(self.position, i, 998) # curr fitness
 
 
 class GreyWolfOptimizer:
@@ -104,7 +104,7 @@ class GreyWolfOptimizer:
             seed = time.mktime((datetime.now()).timetuple()) + i * 1024
 
             population.append(
-                Wolf(self.evaluate_fitness, self.intervals, seed)
+                Wolf(self.evaluate_fitness, self.intervals, seed, i)
             )
 
             print(f"Created wolf {i}")
