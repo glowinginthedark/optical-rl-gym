@@ -10,7 +10,7 @@ from datetime import datetime
 import time
 
 
-from typing import List, Dict
+from typing import List, Dict, Callable
 from matplotlib import pyplot as plt
 
 
@@ -40,12 +40,12 @@ class GreyWolfOptimizer:
     """
 
     def __init__(self,
-        objective_function,
-        max_iteration_number,
-        num_wolves,
+        objective_function: Callable[[List[float], int, int, str, int], float],
+        max_iteration_number: int,
+        num_wolves: int,
         intervals: Dict[str, List[float]],
-        logdir,
-        subprocesses
+        logdir: str,
+        subprocesses: int
     ):
         self.objective_function = objective_function
         self.max_iteration_number = max_iteration_number

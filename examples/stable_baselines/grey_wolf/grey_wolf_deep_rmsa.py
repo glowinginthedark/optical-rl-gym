@@ -28,7 +28,7 @@ import time
 from datetime import datetime
 
 
-PROJECT_ROOT_DIR = os.environ.get('GWO_PROJECT_ROOT_DIR')
+PROJECT_ROOT_DIR = os.environ.get('GWO_PROJECT_ROOT_DIR') # project root directory (not current dir)
 CURRENT_DIR = f"{PROJECT_ROOT_DIR}/examples/stable_baselines/grey_wolf"
 LOG_DIR = F"{CURRENT_DIR}/grey_wolf_deep_rmsa_ppo"
 
@@ -169,7 +169,7 @@ def make_environment(environment_id, subprocess_index, wolf_number, iteration_nu
     set_random_seed(seed)
     return _init
 
-def objective_function(hyperparameters: List[int], wolf_number, iteration_number, logdir, subprocesses):
+def objective_function(hyperparameters: List[float], wolf_number: int, iteration_number: int, logdir: str, subprocesses: int) -> float:
     """
         Objective function - This is the function we want to minimize using wolves.
 
@@ -263,6 +263,12 @@ def run(logdir):
 
 
 if __name__ == '__main__':
+    t = time.mktime((datetime.now()).timetuple())
+    experiment_log_dir = f"{LOG_DIR}/{t}"
+    os.makedirs(experiment_log_dir, exist_ok=True)
+
+    # run(experiment_log_dir)
+
     # best EU
     # a = objective_function(
     #     [57.150171510146116, 1.5973725274316413, 0.002436231245137785, 0.09342223611546041],
@@ -272,11 +278,8 @@ if __name__ == '__main__':
     # best US
     # a = objective_function(
     #     [372.7700422923347, 4.558810949514859, 0.00930657739628599, 0.056794321271912244],
-    #     999, 999
+    #     999, 999, experiment_log_dir, 4
     # )
 
-    t = time.mktime((datetime.now()).timetuple())
-    experiment_log_dir = f"{LOG_DIR}/{t}"
-    os.makedirs(experiment_log_dir, exist_ok=True)
+    # print(a)
 
-    run(experiment_log_dir)
